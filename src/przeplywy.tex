@@ -1,0 +1,101 @@
+\section{Przepływy}
+
+
+Sieć przepływowa: graf skierowany, każda krawędź etykietowana liczbą z R, source, target
+N = (G,c,s,t), gdzie:
+\begin{enumerate}
+
+\item $G = (V,E)$
+\item $c = E \rightarrow R_+$ przy czym możemy pisać jakby było $VxV \rightarrow R_+$ 
+\item $s,t \in V$
+\end{enumerate}
+
+Przepływem w grafie N nazywamy funkcję $f: VxV \rightarrow R$
+
+\begin{enumerate}
+\item $\forall_{(u,v) \in E} |f(u,v)| \le c(u,v)$
+\item $\forall_{(u,v) \in E} f(u,v) =- f(u,v)$
+\item $\forall_{(v) \in E\setminus \{s,t\}}  \sum_{u \in E} f(u,v) = 0$
+\end{enumerate}
+
+Wartość przepływu: $|f| = \sum_v F(s,v)$
+
+Szukamy przepływu o największej wartości.
+
+Note: zakładamy że $\exists_{(u,v) \in E} \Rightarrow !\exists_{(v,u) \in E} $
+
+\subsection{Algorytm zachłanny - Forda-Fulkersona}
+Szkic:
+
+$f:= 0  (\forall_{u,v} f(u,v) = 0$
+$foreach(i \in E)$ do
+    powiększaj $f$ wzdłuż ścieżek od $s$ do $t$
+
+Sieć residualna dla przepływu f w N to sieć $N_f = (G = \{V, E_f\}, c_f, s, t)$, gdzie
+$c_f(u, v) = c(u,v) - f(u,v)$ (przepustowość residualna)
+$E_f = \{ (u,v) \in V^2 : c_f(u,c) > 0 \}$
+
+Ścieżka powiększająca to dowolna ścieżka $s \rightarrow t \in G_f$
+
+Niech będą dane przepływ f, ścieżka powiększająca P.
+
+$f_p: V^2 \rightarrow R$
+$f_p(u,v) = min_{(x,y) \in P} c_f(x,y) gdy (u,v) \in P;min_{(x,y) \in P} c_f(x,y) gdy (v,u) \in P; else 0$
+
+Note: $f_p$ jest przepływem w $N_f$
+
+Będziemy używać dodawania funkcji: $(f + f_p)(x) = f(x) + f_p(x)$
+
+Algorytm:
+    $f \leftarrow 0$
+    $while \exists P$
+        $f := f + f_p$
+        Uaktualnij $N_f$
+
+Czasy:
+ - istnienie O($G_f$) za pomocą DFS-a;
+ - uaktualnianie $N_f$ w O(P)
+
+Jeśli przepustowości są całkowite $ \iff c: V^2 \rightarrow Nat$ wtedy mamy $\le |f*|$ iteracji (bo w każdej iteracji |f| się zwiększa)
+$|f*|$ - maksymalny przepływ
+
+Czyli czas $ \le O(|f*|E)$  
+
+Dowód poprawności:
+
+Przekrojem w sieci $N = (G,c,s,t)$ nazywamy dowolny podział na zbiory S, T takie że $S \cup T = V and S \cap T = emptysetocirc$
+
+przepustowość przekroju $c(S,T) = \sum_{u \in S, v \in T} c(u,v)$
+
+Niech f przepływ w N. (S, T) = przekrój w N
+Wtedy liczbę $f(S,T) = \sum_{u \in S, v \in T} f(u,v)$ nazywamy przepływem przez przekrój.
+
+Lemat 0: f przepływ, P ścieżka powiększająca $f + f_p$ jest przepływem 
+
+Lemat 0.5: f przepływ w N, g przepływ w $N_f \Rightarrow (f + g)$ jest przepływem w N
+Lemat 1: $f(S,T) \le c(S,T)$ dowód oczywisty na podstawie z definicji.
+
+Lemat 2: $\forall_{(S,T)} f(S,T) = |f| = f(\{ s \}, V \setminus \{ s \} ) = \sum_{v \in V} f(s,v)$
+Dowód: $f(S,T) = \sum_{u \in S, v \in T} f(u,v) = \sum_{u \in S, v \in T} f(u,v) - \sum_{u \in S, v \in S} f(u,v) $
+wiemy, że $\sum_{u \in S, v \in S} f(u,v) = 0$
+zatem to dalej jest równe $ = \sum_{v \in V} f(s,v) + \sum_{u \in S \setminus \{ s \}, v \in V } f(u,v)$
+przy czym jak drugi składnik rozbijemy na $\sum \sum$ to z warunku (3) z definicji przepływu = 0.
+zatem to dalej jest równe $ |f| $
+
+
+Po co nam to?
+Jak połączymy te dwie nierówności to mamy:
+$\forall_f \forall_{S, T} |f| \le c(S,T)$
+
+Chcąc udowodnić że algorytm tworzy maksymalny przepływ pokażemy że powyżej zajdzie równość.
+
+Twierdzenie o maksymalnym przepływie i minimalnym przekroju - jeśli f to przepływ w N to są równoważne:
+\begin{enumerate}
+    \item f jest maksymalny
+    \item nie istnieje ścieżka powiększająca
+    \item istnieje przekrót (S,T) taki, że $ c(S,T) = |f|$
+    
+\end{enumerate}
+
+Dowód: $1 \Rightarrow 2$
+
