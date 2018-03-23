@@ -1,86 +1,117 @@
-\section{Przepływy}
+\chapter{Przepływy}
 
+\begin{defi}[Sieć przepływowa]
+    Siecią przepływową nazywamy N = (G,c,s,t), gdzie:
+    \begin{enumerate}
+        \item $G = (V,E)$
+        \item $c = E \rightarrow \RR_+$ przy czym możemy pisać jakby było $V \times V \rightarrow \RR_+$ 
+        \item $s,t \in V$
+    \end{enumerate}
+\end{defi}
 
-Sieć przepływowa: graf skierowany, każda krawędź etykietowana liczbą z R, source, target
-N = (G,c,s,t), gdzie:
-\begin{enumerate}
+\begin{defi}[Przepływ]
+    Przepływem w sieci przepływowej N nazywamy funkcję $f: V \times V \rightarrow R$ taką, że:
 
-\item $G = (V,E)$
-\item $c = E \rightarrow R_+$ przy czym możemy pisać jakby było $VxV \rightarrow R_+$ 
-\item $s,t \in V$
-\end{enumerate}
+    \begin{enumerate}
+        \item $\forall_{(u,v) \in E} |f(u,v)| \le c(u,v)$
+        \item $\forall_{(u,v) \in E} f(u,v) =- f(u,v)$
+        \item $\forall_{(v) \in E\setminus \{s,t\}}  \sum_{u \in E} f(u,v) = 0$
+    \end{enumerate}
+\end{defi}
 
-Przepływem w grafie N nazywamy funkcję $f: VxV \rightarrow R$
+\begin{defi}[Warotść przepływu]
+    Wartością przepływu nazywamy $|f| = \sum_v f(s,v)$
+\end{defi}
 
-\begin{enumerate}
-\item $\forall_{(u,v) \in E} |f(u,v)| \le c(u,v)$
-\item $\forall_{(u,v) \in E} f(u,v) =- f(u,v)$
-\item $\forall_{(v) \in E\setminus \{s,t\}}  \sum_{u \in E} f(u,v) = 0$
-\end{enumerate}
+Będziemy analizowali algorytmy szukamjące przepływu o największej wartości.
 
-Wartość przepływu: $|f| = \sum_v F(s,v)$
+Uwaga: Od tej pory zakładamy że $\exists_{(u,v) \in E} \Rightarrow \hspace{3pt}!\exists_{(v,u) \in E}$. \newline Jeśli jest inaczej to zawsze możemy stworzyć nowy wierzchołek $(uv)$ i krawędź $ u \rightarrow v $ zastąpić krawędziami $ u \rightarrow (uv) \rightarrow v$ z odpowiednimi wagami. Równoważność tych dwóch sieci przepływowych jest oczywista.
 
-Szukamy przepływu o największej wartości.
-
-Note: zakładamy że $\exists_{(u,v) \in E} \Rightarrow !\exists_{(v,u) \in E} $
-
-\subsection{Algorytm zachłanny - Forda-Fulkersona}
+\section{Algorytm zachłanny - Forda-Fulkersona}
 Szkic:
 
-$f:= 0  (\forall_{u,v} f(u,v) = 0$
-$foreach(i \in E)$ do
-    powiększaj $f$ wzdłuż ścieżek od $s$ do $t$
+\begin{algorithmic}
+    \State $f:= 0  \hspace{2cm} (\iff \forall_{u,v} f(u,v) = 0)$
+    \ForAll {$i \in E$}
+    \State powiększaj $f$ wzdłuż ścieżek od $s$ do $t$
+    \EndFor
+\end{algorithmic}
 
-Sieć residualna dla przepływu f w N to sieć $N_f = (G = \{V, E_f\}, c_f, s, t)$, gdzie
-$c_f(u, v) = c(u,v) - f(u,v)$ (przepustowość residualna)
-$E_f = \{ (u,v) \in V^2 : c_f(u,c) > 0 \}$
+\begin{defi}[Sieć residualna]
+    Sieć residualna dla przepływu f w N to sieć $N_f = (G = \{V, E_f\}, c_f, s, t)$, gdzie:
+    \begin{itemize}
+        \item $c_f(u, v) = c(u,v) - f(u,v)$ (przepustowość residualna)
+        \item $E_f = \{ (u,v) \in V^2 : c_f(u,c) > 0 \}$
+    \end{itemize}
+\end{defi}
 
-Ścieżka powiększająca to dowolna ścieżka $s \rightarrow t \in G_f$
+\begin{defi}[Ścieżka powiększająca]
+    Ścieżka powiększająca to dowolna ścieżka $s \rightarrow t \in G_f$
+\end{defi}
 
 Niech będą dane przepływ f, ścieżka powiększająca P.
 
-$f_p: V^2 \rightarrow R$
-$f_p(u,v) = min_{(x,y) \in P} c_f(x,y) gdy (u,v) \in P;min_{(x,y) \in P} c_f(x,y) gdy (v,u) \in P; else 0$
+Niech $f_p: V^2 \rightarrow R$ \newline
+$f_p(u,v) =
+\begin{cases}
+    min_{(x,y) \in P} c_f(x,y) \hspace{2cm} \text{gdy} (u,v) \in P \\
+    min_{(x,y) \in P} c_f(x,y) \hspace{2cm} \text{gdy} (v,u) \in P \\
+    0 \hspace{2cm} \text{wpp}
+\end{cases}$
+
 
 Note: $f_p$ jest przepływem w $N_f$
 
 Będziemy używać dodawania funkcji: $(f + f_p)(x) = f(x) + f_p(x)$
 
-Algorytm:
-    $f \leftarrow 0$
-    $while \exists P$
-        $f := f + f_p$
-        Uaktualnij $N_f$
+Algorytm FF:
+
+\begin{algorithmic}
+    \State $f \gets 0$
+    \While {$\exists P$}
+        \State $f := f + f_p$
+        \State uaktualnij $N_f$
+        \EndWhile
+\end{algorithmic}
 
 Czasy:
- - istnienie O($G_f$) za pomocą DFS-a;
- - uaktualnianie $N_f$ w O(P)
+\begin{itemize}[noitemsep, topsep=0pt]
+    \item istnienie P sprawdzamy w O($G_f$) za pomocą DFS-a
+    \item uaktualnianie $N_f$ w O(P)
+\end{itemize}
 
-Jeśli przepustowości są całkowite $ \iff c: V^2 \rightarrow Nat$ wtedy mamy $\le |f*|$ iteracji (bo w każdej iteracji |f| się zwiększa)
-$|f*|$ - maksymalny przepływ
+$|f^*|$ - maksymalny przepływ
 
-Czyli czas $ \le O(|f*|E)$  
+Jeśli przepustowości są całkowite $ \iff c: V^2 \rightarrow \NN$, wtedy mamy $\le |f^*|$ iteracji (bo w każdej iteracji $|f|$ się zwiększa), zatem czas $ \le O(|f^*|E)$  
 
-Dowód poprawności:
+\subsection{Dowód poprawności}
 
-Przekrojem w sieci $N = (G,c,s,t)$ nazywamy dowolny podział na zbiory S, T takie że $S \cup T = V and S \cap T = emptysetocirc$
+\begin{defi}[Przekrój]
+    Przekrojem w sieci $N = (G,c,s,t)$ nazywamy dowolny podział $V$ na zbiory S, T takie że $S \cup T = V \land S \cap T = \emptyset$
+\end{defi}
 
-przepustowość przekroju $c(S,T) = \sum_{u \in S, v \in T} c(u,v)$
+\begin{defi}[Przepustowość przekroju i przepływ przez przekrój]
+    Przepustowością przekroju nazywamy $c(S,T) = \sum_{u \in S, v \in T} c(u,v)$, zaś przepływem przez przekrój $f(S,T) = \sum_{u \in S, v \in T} f(u,v)$
+\end{defi}
 
-Niech f przepływ w N. (S, T) = przekrój w N
-Wtedy liczbę $f(S,T) = \sum_{u \in S, v \in T} f(u,v)$ nazywamy przepływem przez przekrój.
+\begin{lemat}
+    f przepływ, P ścieżka powiększająca $\Rightarrow f + f_p$ jest przepływem
+\end{lemat}
 
-Lemat 0: f przepływ, P ścieżka powiększająca $f + f_p$ jest przepływem 
+\begin{lemat}
+    f przepływ w N, g przepływ w $N_f \Rightarrow (f + g)$ jest przepływem w N
+\end{lemat}
 
-Lemat 0.5: f przepływ w N, g przepływ w $N_f \Rightarrow (f + g)$ jest przepływem w N
-Lemat 1: $f(S,T) \le c(S,T)$ dowód oczywisty na podstawie z definicji.
+\begin{lemat}
+    $f(S,T) \le c(S,T)$ dowód oczywisty na podstawie definicji.
+\end{lemat}
 
-Lemat 2: $\forall_{(S,T)} f(S,T) = |f| = f(\{ s \}, V \setminus \{ s \} ) = \sum_{v \in V} f(s,v)$
-Dowód: $f(S,T) = \sum_{u \in S, v \in T} f(u,v) = \sum_{u \in S, v \in T} f(u,v) - \sum_{u \in S, v \in S} f(u,v) $
-wiemy, że $\sum_{u \in S, v \in S} f(u,v) = 0$
-zatem to dalej jest równe $ = \sum_{v \in V} f(s,v) + \sum_{u \in S \setminus \{ s \}, v \in V } f(u,v)$
-przy czym jak drugi składnik rozbijemy na $\sum \sum$ to z warunku (3) z definicji przepływu = 0.
-zatem to dalej jest równe $ |f| $
+\begin{lemat}
+    $\forall_{(S,T)} f(S,T) = |f| = f(\{ s \}, V \setminus \{ s \} ) = \sum_{v \in V} f(s,v)$
+\end{lemat}
+\begin{proof}
+     $f(S,T) = \sum_{u \in S, v \in T} f(u,v) = \sum_{u \in S, v \in T} f(u,v) - \sum_{u \in S, v \in S} f(u,v) $ wiemy, że $\sum_{u \in S, v \in S} f(u,v) = 0$ zatem to dalej jest równe $ = \sum_{v \in V} f(s,v) + \sum_{u \in S \setminus \{ s \}, v \in V } f(u,v)$ przy czym jak drugi składnik rozbijemy na $\sum \sum$ to z warunku (3) z definicji przepływu = 0. zatem to dalej jest równe $ |f| $
+\end{proof}
 
 
 Po co nam to?
@@ -97,5 +128,149 @@ Twierdzenie o maksymalnym przepływie i minimalnym przekroju - jeśli f to przep
     
 \end{enumerate}
 
-Dowód: $1 \Rightarrow 2$
+Dowód:
+\begin{itemize}
+\item $1 \Rightarrow 2$ bo gdyby $ \exists P \Rightarrow f + f_p > f$
+\item $3 \Rightarrow 1$ z czegoś wyżej
+\item $2 \Rightarrow 3$ Buduję przekrój $ S:= $ wierzchołki osiągalne z $s w G_f. T:= V \setminus S$. To jest przekrój. $|f| = \sum_{u \in S, v \in T} f(u,v) = \sum_{u \in S, v \in T} c(u,v)$. Ostatnia równość zachodzi bo 2. 
+\end{itemize}
+
+Zatem jeśli algorytm się zatrzyma, to nie istnieje ścieżka powiększająca, zatem wyznacza maksymalny przepływ. Działa też dla wymiernych, bo można pomnożyć razy wszystkie mianowniki.
+
+\section{Algorytm Edmondsa-Karpa}
+
+Spróbujemy wybrać jakoś ścieżkę powiększającą w algorytmie Ford-Fulkersona, żeby to optymalizować.
+
+Pierwszy pomysł: weźmy najkrótsze ścieżki (w sensie liczby krawędzi). Najkrótszą ścieżkę będziemy wyszukiwać BFS-em.
+
+Poprawność jest oczywista na podstawie poprawności Forda-Fulkersona.
+
+Zastanówmy się nad złożonością.
+
+Iteracja dalej trwa $O(E)$.
+Spróbujemy znaleźć ograniczenie na liczbę iteracji.
+Będziemy pisać odległość $s \rightarrow v$ w $G_{f}$ jako $\delta_{f}(s,v)$
+Zaczniemy od pokazania:
+
+\begin{lemat}
+    $f$ - przepływ, $P$ - najkrótsza ścieżka powiększająca, $f' = f + f_p \Rightarrow \forall_{v \in V} \delta_{f'}(s,v) \ge \delta_{f}(s,v)$
+\end{lemat}
+
+% TODO popraw ten dowód
+
+\begin{proof}
+Indukcja:
+
+jeśli $(w,v) \in E_f$ to $\delta_{f'}(v) = \delta_{f'}(w) + 1 \ge \delta_f(w) + 1 \ge \delta_f(v)$
+
+$(w,v) \notin E_f \Rightarrow (v,w) \in E_f \Rightarrow \delta_{f'}(w) = \delta_f(v) + 1 \Rightarrow \delta_{f'}(v) \ge \delta_f(w) + 1 = \delta_f(v)+2$
+\end{proof}
+
+\begin{lemat}
+    W algorytmie Edmondsa-Karpa każda krawędź staje się nasycona $O(V)$ razy.
+\end{lemat}
+
+Z tego jasno wyniknie że liczba iteracji jest $O(V*E)$ (przy każdej iteracji conajmniej jedna krawędź staje się nasycona). (Dopiero teraz pokazaliśmy, że problem maksymalnego przepływu można rozwiązać wielomianowo)
+
+\begin{proof}
+    Weźmy sobie $e = (u,v) \in E_f$. Spójrzmy na dwa kolejne momenty A, B, kiedy $e$ stawała się nasycona.
+    W momentach A,B $e \in E_f$. Ale po momencie A mamy $e \notin A$. Czyli kiedyś musiała się pojawić. Nazwijmy ten moment C.
+    
+    Oczywiście $(v,u) \in E_f$ w momencie C i $(v,u)$ leży na najkrótszej ścieżce $s \rightarrow t$. Zatem $\delta_{f'}(u) = \delta_{f'}(v)+1$. Z poprzedniego lematu $\ge \delta_f(v) + 1 = \delta_f(u) + 1$
+
+    Pokazaliśmy, że pomiędzy A i B $\delta_f(u)$ rośnie o $\ge 2$, zatem tak się dzieje $\le (V-1)/2$ razy.  
+\end{proof}
+
+\section{Algorytm Dinica i trzech hindusów}
+
+Znowu naturalny pomysł. Bezsensu odpalamy BFS-a wiele razy. Być może po updacie da się reużyć wynik naszego ostatniego BFS-a i updateować 'na jedno odpalenie BFS więcej ścieżek'
+
+\begin{defi}[Przepływ blokujący]
+    taki, że dla każdej ścieżki $s \rightarrow t$ istnieje krawędź nasycona.
+\end{defi}
+
+Będziemy robić mniej-więcej to samo, tylko w jednej iteracji będziemy szukać przepływu blokującego zamiast ścieżki powiększającej (blokującej).
+
+\begin{defi}[Sieć warstwowa]
+    $L_f$ to jest pewien podgraf $N_f$ taki, że:
+    \begin{itemize}
+        \item $V(L_f) = V$ 
+        \item $(u,v) \in E(L_f) \iff \delta_f(v)=\delta_f(u) + 1$
+    \end{itemize}
+\end{defi}
+
+Schemat:
+
+\begin{algorithmic}
+    \State $f \gets 0$
+    \While {$\exists$ ścieżka powiększająca}
+        \State Zbuduj sieć warstwową $L_f$ za pomocą BFS-a
+        \State $b \gets $ przepływ blokujący w $L_f$
+        \State $f \gets f + b$
+        \State Zaktualizuj $N_f$
+        \EndWhile
+\end{algorithmic}
+
+Dlaczego to działa szybko? Będziemy ograniczać liczbę iteracji:
+
+\begin{lemat}
+    Niech b będzie przepływem blokującym w $L_f$
+    $\delta_{f+b}(t) > \delta_f(t)$
+\end{lemat}
+
+\begin{proof}
+    Niech: $d = \delta_f(t)$ \newline
+    Pokażemy że dowolna ścieżka w $G_{f+b}: v_0, v_1, ... v_k$ ma długość $> d$. \newline
+    Niech: $l(v_i) = \delta_f(v_i)$ \newline
+    Wtedy $\forall_{(v_i,v_{i+1})} \in G_{f+b} \rightarrow (v_i,v_{i+1}) \in G_f \rightarrow \delta_f(v_{i+1} \le \delta_f(v)+1)$
+    lub $(v_i,v_{i+1}) \notin G_f \rightarrow b$ przesłał po $(v_{i+1}, v) \rightarrow \delta_f(v_i) = \delta_f(v_{i+1}) + 1 \rightarrow l(v_{i+1}) = l(v_i) -1$
+
+    Co najmniej raz zdarzył się przypadek drugi, bo $b$ jest blokujące.
+
+\end{proof}
+
+Zatem liczba iteracji $\le V-1$.
+
+
+Pytanie pozostaje, jak szybko potrafimy znaleźć przepływ blokujący.
+
+Będziemy robić dfs-a który jak znajdzie ścieżkę do t to skacze do s, jak się wycofuje to usuwa krawędź.
+
+\begin{algorithmic}
+    \State $b \gets 0$
+    \State $v \gets s$
+    \State $p \gets \emptyset$
+    \While {$v != s or \exists_{w} and (v,w \in E(L_f))$}
+        \If {$\exists_w (v,w) \in E(L_f)$}
+            \State ADVANCE:
+            \State $push(p, (v,w))$
+            \State $v \gets w$
+            \If {$v = t$}
+                \State AUGMENT:
+                \State Powiększ $b$ wzdłuż ścieżki powiększającej $p$
+                \State $p \gets \emptyset$
+                \State $ v \gets s $
+            \Else
+                \State RETREAT:
+                \State Usuń ostatnią krawędź $(u,w) z p$
+                \State $E(L_f) \gets E(L_f) \setminus {(u,w)}$
+                \State $v \gets u$
+            \EndIf
+        \EndIf
+    \EndWhile
+
+\end{algorithmic}
+
+Analiza:
+całkowity czas RETREAT = O(E)
+całkowity czas AUGMENT = O(VE)
+całkowity czas ADVANCE: każda operacja ADVANCE(v,w) w przyszłości owocuje RETREAT(v,w) lub AUGMENT, więc $\le O(VE) + O(E)$
+
+suma: $O(VE)$
+
+Zatem:
+całkowity koszt algorytmu Dinica jest równy $O(V^2E)$
+
+
+Trzech hindusów znajduje przepływ blokujący w czasie $O(V^2) \rightarrow $ cały przepływ w $O(V^3)$. Da się 
 

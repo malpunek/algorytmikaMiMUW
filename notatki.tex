@@ -1,8 +1,45 @@
-\documentclass[14pt,a4paper]{article}    
-\usepackage[utf8x]{inputenc}
-\usepackage{polski}
+\documentclass[14pt,a4paper]{report}
+
+    \usepackage[hmargin=1.8cm,vmargin=1.8cm]{geometry}
+    \usepackage[utf8x]{inputenc}
+    \usepackage{polski}
+    \usepackage{amsmath,amsthm,amssymb}
+    \usepackage{algorithmicx}
+    \usepackage{algpseudocode}
+    \usepackage{enumitem}
+    \usepackage{changepage}
+    \usepackage{hyperref}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+
+\newtheorem{wniosek}{Wniosek}
+\newtheorem{defi}{Definicja}
+\newtheorem{fakt}{Fakt}
+\newtheorem{lemat}{Lemat}
+\newtheorem{twierdz}{Twierdzenie}
+\newtheorem{obserw}{Obserwacja}
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathbb{N}}
+
+\newenvironment{dowod}[1]
+    {Dowód \textbf{#1}
+        \begin{adjustwidth}{2cm}{}}
+    {
+        
+        \end{adjustwidth}}
+
+\title{Algorytmika@mimuw}
+\author{Stanisław Morawski na podstawie wykładów na MIM UW}
 
 \begin{document}
+
+\maketitle
+\tableofcontents
+\clearpage
+
 \input{src/zasady-zaliczenia.tex}
 \input{src/przeplywy.tex}
 
